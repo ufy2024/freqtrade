@@ -100,6 +100,22 @@ class Balance(BaseModel):
     is_bot_managed: bool
 
 
+class ExchangeSubaccount(BaseModel):
+    name: str = ""
+    label: str = ""
+    uid: str = ""
+    enabled: bool = True
+    total_eq: float | None = None
+
+
+class ExchangeAccounts(BaseModel):
+    role: str = ""
+    uid: str = ""
+    main_uid: str = ""
+    label: str = ""
+    subaccounts: list[ExchangeSubaccount] = []
+
+
 class Balances(BaseModel):
     currencies: list[Balance]
     total: float
@@ -115,6 +131,7 @@ class Balances(BaseModel):
     starting_capital_fiat: float
     starting_capital_fiat_ratio: float
     starting_capital_fiat_pct: float
+    accounts: ExchangeAccounts | None = None
 
 
 class Count(BaseModel):

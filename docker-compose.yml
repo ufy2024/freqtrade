@@ -22,15 +22,43 @@ services:
     container_name: freqtrade
     volumes:
       - "./user_data:/freqtrade/user_data"
+      - "./user_data/frequi-index.html:/freqtrade/freqtrade/rpc/api_server/ui/installed/index.html:ro"
+      - "./user_data/ui/index-CqFyOUQX.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/index-CqFyOUQX.js:ro"
+      - "./user_data/ui/graph-Dv-BWSsY.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/graph-Dv-BWSsY.js:ro"
+      - "./user_data/ui/graph-pairs3.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/graph-pairs3.js:ro"
+      - "./user_data/ui/index-pairs3.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/index-pairs3.js:ro"
+      - "./user_data/rpc_container.py:/freqtrade/freqtrade/rpc/rpc.py:ro"
+      - "./freqtrade/rpc/api_server/api_schemas.py:/freqtrade/freqtrade/rpc/api_server/api_schemas.py:ro"
     # Expose api on port 8080 (localhost only)
     # Please read the https://www.freqtrade.io/en/stable/rest-api/ documentation
     # for more information.
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8081:8080"
     # Default command used when running `docker compose up`
     command: >
       trade
       --logfile /freqtrade/user_data/logs/freqtrade.log
-      --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
-      --config /freqtrade/user_data/config.json
-      --strategy SampleStrategy
+      --db-url sqlite:////freqtrade/user_data/tradesv3_futures.sqlite
+      --config /freqtrade/user_data/config-live.json
+      --strategy DualMAVolatilityEma
+  freqtrade-turtle:
+    image: freqtradeorg/freqtrade:stable
+    restart: unless-stopped
+    container_name: freqtrade-turtle
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+      - "./user_data/frequi-index.html:/freqtrade/freqtrade/rpc/api_server/ui/installed/index.html:ro"
+      - "./user_data/ui/index-CqFyOUQX.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/index-CqFyOUQX.js:ro"
+      - "./user_data/ui/graph-Dv-BWSsY.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/graph-Dv-BWSsY.js:ro"
+      - "./user_data/ui/graph-pairs3.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/graph-pairs3.js:ro"
+      - "./user_data/ui/index-pairs3.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/index-pairs3.js:ro"
+      - "./user_data/rpc_container.py:/freqtrade/freqtrade/rpc/rpc.py:ro"
+      - "./freqtrade/rpc/api_server/api_schemas.py:/freqtrade/freqtrade/rpc/api_server/api_schemas.py:ro"
+    ports:
+      - "127.0.0.1:8082:8080"
+    command: >
+      trade
+      --logfile /freqtrade/user_data/logs/turtle.log
+      --db-url sqlite:////freqtrade/user_data/tradesv3_turtle.sqlite
+      --config /freqtrade/user_data/config-turtle.json
+      --strategy TurtleStrategy

@@ -839,6 +839,29 @@ class RPC:
                 logger.warning(f"Error {e} getting rate for {coin}")
         return est_stake, est_bot_stake
 
+    def _live_position_equity(self, pair: str) -> float | None:
+        """Stake plus unrealized profit at the latest cached price."""
+        trades = [trade for trade in Trade.get_open_trades() if trade.pair == pair and trade.is_open]
+        if not trades:
+            return None
+        total = 0.0
+        priced = False
+        for trade in trades:
+            equity = float(trade.stake_amount)
+            try:
+                rate = self._freqtrade.exchange.get_rate(
+                    trade.pair, side="exit", is_short=trade.is_short, refresh=False
+                )
+                if rate and not isnan(rate):
+                    equity = float(trade.stake_amount) + float(
+                        trade.calculate_profit(rate).profit_abs
+                    )
+                    priced = True
+            except (ExchangeError, PricingError):
+                pass
+            total += equity
+        return total if priced else None
+
     def _rpc_balance(self, stake_currency: str, fiat_display_currency: str) -> dict:
         """Returns current account balance per crypto"""
         currencies: list[dict] = []
@@ -921,9 +944,20 @@ class RPC:
                 except (ExchangeError, PricingError) as e:
                     logger.warning(f"Error {e} getting rate for futures {symbol} / {pos_base}")
 
+            # A shared futures account shows every position to every bot.
+            # available_capital means this bot only owns positions it opened.
+            bot_owns_position = pos_base in open_assets
+            count_for_bot = bot_owns_position or "available_capital" not in self._config
+            bot_equity = est_stake
+            if count_for_bot:
+                live_equity = self._live_position_equity(symbol)
+                if live_equity is not None:
+                    bot_equity = live_equity
+
             # Add the estimated stake (collateral + unlevered PnL) to totals
             total += est_stake
-            total_bot += est_stake
+            if count_for_bot:
+                total_bot += bot_equity
 
             currencies.append(
                 {
@@ -933,10 +967,10 @@ class RPC:
                     "used": 0,
                     "position": pos.position,
                     "est_stake": est_stake,
-                    "est_stake_bot": est_stake,
+                    "est_stake_bot": bot_equity if count_for_bot else 0,
                     "stake": stake_currency,
                     "side": pos.side,
-                    "is_bot_managed": pos_base in open_assets,
+                    "is_bot_managed": bot_owns_position,
                     "is_position": True,
                 }
             )
