@@ -2,10 +2,11 @@ from pathlib import Path
 
 from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, Response
 
 
 router_ui = APIRouter(include_in_schema=False, tags=["Web UI"])
+NO_STORE = {"Cache-Control": "no-store"}
 
 
 @router_ui.get("/favicon.ico")
@@ -30,6 +31,14 @@ async def ui_version():
     }
 
 
+@router_ui.get("/equity_curve.json")
+async def equity_curve():
+    path = Path("/freqtrade/user_data/equity_curve.json")
+    if not path.is_file():
+        return Response(content='{"curves":{}}', media_type="application/json", headers=NO_STORE)
+    return FileResponse(str(path), media_type="application/json", headers=NO_STORE)
+
+
 @router_ui.get("/{rest_of_path:path}")
 async def index_html(rest_of_path: str):
     """
@@ -46,10 +55,10 @@ async def index_html(rest_of_path: str):
         # Force text/javascript for .js files - Circumvent faulty system configuration
         media_type = "application/javascript"
     if filename.is_file() and filename.is_relative_to(uibase):
-        return FileResponse(str(filename), media_type=media_type)
+        return FileResponse(str(filename), media_type=media_type, headers=NO_STORE)
 
     index_file = uibase / "index.html"
     if not index_file.is_file():
-        return FileResponse(str(uibase.parent / "fallback_file.html"))
+        return FileResponse(str(uibase.parent / "fallback_file.html"), headers=NO_STORE)
     # Fall back to index.html, as indicated by vue router docs
-    return FileResponse(str(index_file))
+    return FileResponse(str(index_file), headers=NO_STORE)

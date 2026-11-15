@@ -29,6 +29,7 @@ services:
       - "./user_data/ui/index-pairs3.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/index-pairs3.js:ro"
       - "./user_data/rpc_container.py:/freqtrade/freqtrade/rpc/rpc.py:ro"
       - "./freqtrade/rpc/api_server/api_schemas.py:/freqtrade/freqtrade/rpc/api_server/api_schemas.py:ro"
+      - "./freqtrade/rpc/api_server/web_ui.py:/freqtrade/freqtrade/rpc/api_server/web_ui.py:ro"
     # Expose api on port 8080 (localhost only)
     # Please read the https://www.freqtrade.io/en/stable/rest-api/ documentation
     # for more information.
@@ -54,6 +55,7 @@ services:
       - "./user_data/ui/index-pairs3.js:/freqtrade/freqtrade/rpc/api_server/ui/installed/assets/index-pairs3.js:ro"
       - "./user_data/rpc_container.py:/freqtrade/freqtrade/rpc/rpc.py:ro"
       - "./freqtrade/rpc/api_server/api_schemas.py:/freqtrade/freqtrade/rpc/api_server/api_schemas.py:ro"
+      - "./freqtrade/rpc/api_server/web_ui.py:/freqtrade/freqtrade/rpc/api_server/web_ui.py:ro"
     ports:
       - "127.0.0.1:8082:8080"
     command: >
@@ -62,3 +64,13 @@ services:
       --db-url sqlite:////freqtrade/user_data/tradesv3_turtle.sqlite
       --config /freqtrade/user_data/config-turtle.json
       --strategy TurtleStrategy
+  qqbot:
+    image: freqtradeorg/freqtrade:stable
+    restart: unless-stopped
+    container_name: qqbot
+    entrypoint: ["python", "-u"]
+    command: ["/freqtrade/user_data/qq_bridge.py"]
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+    ports:
+      - "127.0.0.1:8090:8090"

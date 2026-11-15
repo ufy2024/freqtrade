@@ -98,6 +98,7 @@ class Balance(BaseModel):
     is_position: bool
     position: float
     is_bot_managed: bool
+    stop_covered: float | None = None
 
 
 class ExchangeSubaccount(BaseModel):
@@ -116,6 +117,35 @@ class ExchangeAccounts(BaseModel):
     subaccounts: list[ExchangeSubaccount] = []
 
 
+class ExchangeEquity(BaseModel):
+    equity: float | None = None
+    equity_usd: float | None = None
+    checked_at: int | None = None
+    diff: float | None = None
+    cash: float | None = None
+    holding_limit: float | None = None
+    pair_limit: float | None = None
+
+
+class ExchangePosition(BaseModel):
+    pair: str
+    side: str
+    amount: float
+    avg_price: float | None = None
+    mark_price: float | None = None
+    notional: float | None = None
+    margin: float | None = None
+    upl: float | None = None
+    value: float | None = None
+    leverage: float | None = None
+    liq_price: float | None = None
+    margin_mode: str | None = None
+    opened_at: int | None = None
+    stop_price: float | None = None
+    stop_cover: float | None = None
+    stops_known: bool | None = None
+
+
 class Balances(BaseModel):
     currencies: list[Balance]
     total: float
@@ -131,7 +161,12 @@ class Balances(BaseModel):
     starting_capital_fiat: float
     starting_capital_fiat_ratio: float
     starting_capital_fiat_pct: float
+    principal: float | None = None
+    principal_since: int | None = None
+    transfers: list[tuple[int, float]] | None = None
     accounts: ExchangeAccounts | None = None
+    exchange_equity: ExchangeEquity | None = None
+    exchange_positions: list[ExchangePosition] | None = None
 
 
 class Count(BaseModel):
