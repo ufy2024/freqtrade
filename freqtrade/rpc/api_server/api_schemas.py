@@ -107,6 +107,9 @@ class ExchangeSubaccount(BaseModel):
     uid: str = ""
     enabled: bool = True
     total_eq: float | None = None
+    stake_eq: float | None = None
+    cash: float | None = None
+    upl: float | None = None
 
 
 class ExchangeAccounts(BaseModel):
